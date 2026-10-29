@@ -1,4 +1,4 @@
-# NekoWave Radio server integration / Встраивание на сервер
+# AuroraKitsuneRadio Radio server integration / Встраивание на сервер
 
 **Do not replace your entire `mpmissions/<mission>/init.c`.**
 Back it up first. `server/mission-radio-snippet.c` is a **reference snippet**;
@@ -26,7 +26,7 @@ client mod alone cannot configure a server mission.
    licensing, geo-availability and capacity, before enabling on a live server.
 4. Install the matching signed client mod on server and distribute its `.bikey`
    into the server `keys/` directory. Copy [`server/meta.cpp`](../server/meta.cpp)
-   to the root of the server's `@NekoWave/` directory, next to `mod.cpp`
+   to the root of the server's `@AuroraKitsuneRadio/` directory, next to `mod.cpp`
    and `addons/`. Its `publishedid = 0` intentionally does not advertise the original project's Workshop item. Once this fork has its own published Workshop item, replace `0` with that new ID. Keep upstream author credit in the README.
    Do **not** place it inside the PBO or under `server/` on the DayZ host.
    With all required mods signed, use `verifySignatures=2`; do not disable
@@ -39,7 +39,7 @@ client mod alone cannot configure a server mission.
 
 ### Running alongside another car-radio or cassette mod
 
-NekoWave's car mode is a separate **opt-in player-side stream**. It does
+AuroraKitsuneRadio's car mode is a separate **opt-in player-side stream**. It does
 not register tape items, change the other mod's tuning actions, or patch the
 other mod's classes. This makes co-installation possible in principle, but it
 is not proof of compatibility with any particular Workshop release.
@@ -54,11 +54,11 @@ script errors and action menus before deploying publicly.
 For players: use `!radio car off` before using the cassette radio. Otherwise
 the two unrelated audio players can be audible simultaneously. The livestream
 is local to MPC-HC, and the cassette mod retains its own playback/controls.
-Switching to a cassette does not automatically stop NekoWave, because
+Switching to a cassette does not automatically stop AuroraKitsuneRadio, because
 there is no verified API to detect cassette playback.
 
 For administrators: keep both mods installed as separate signed client mods,
-include their declared dependencies, and retain the NekoWave mission RPC
+include their declared dependencies, and retain the AuroraKitsuneRadio mission RPC
 integration. Do **not** rename or overwrite the other mod's classes, car
 actions, or JSON configuration. If duplicate input actions, class collisions,
 or UI conflicts occur, inspect both mods' actual scripts and add a dedicated
@@ -92,7 +92,7 @@ mission. Obtain content rights and check stream capacity before advertising.
 
 #### Radio_Fungi cassette coexistence
 
-In vehicles with a `Cassette` attachment slot, NekoWave now checks
+In vehicles with a `Cassette` attachment slot, AuroraKitsuneRadio now checks
 whether a cassette is inserted. If so, the external livestream automatically
 pauses and Radio_Fungi can use its original controls. Removing the cassette
 allows the selected livestream preset to resume if the car engine is running.

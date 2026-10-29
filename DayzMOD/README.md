@@ -1,10 +1,10 @@
-# NekoWave Radio
+# AuroraKitsuneRadio Radio
 
 **Current source version: 0.2.2 (GUI/keybind beta).** The version in `server/mod.cpp` must be copied into the published mod folder when rebuilding; publishing to Steam Workshop remains a separate action.
 
 Live internet radio for DayZ handheld radios and vehicles, with experimental Radio_Fungi cassette coexistence.
 
-**Based on:** [LootTeamRadio by offmonreal](https://github.com/offmonreal/LootTeamRadio). NekoWave Radio is an independent fork that retains credit to the original project and its contributors. See [LICENSE](LICENSE) for licensing terms.
+**Based on:** [LootTeamRadio by offmonreal](https://github.com/offmonreal/LootTeamRadio). AuroraKitsuneRadio Radio is an independent fork that retains credit to the original project and its contributors. See [LICENSE](LICENSE) for licensing terms.
 
 ## Features
 
@@ -18,7 +18,7 @@ Live internet radio for DayZ handheld radios and vehicles, with experimental Rad
 
 1. Install [MPC-HC](https://github.com/clsid2/mpc-hc/releases) on Windows and keep it running.
 2. In **View > Options > Player > Web Interface**, enable **Listen on port** and enter `13579`.
-3. Install a matching signed NekoWave Radio client mod and join a server that has integrated its mission-side station configuration.
+3. Install a matching signed AuroraKitsuneRadio Radio client mod and join a server that has integrated its mission-side station configuration.
 4. Use a battery-powered **Personal Radio** in your hands, or enter a vehicle with its engine running and select a live station.
 
 ## Remote GitHub station catalogue (v0.2.2 test mode)
@@ -34,7 +34,7 @@ This **does not require rebuilding the PBO when the JSON content changes** after
 **v0.2.2 UI fixes:** Bundled 48-station catalogue is shown even if the server has not supplied station metadata yet. A later server snapshot still replaces the bundled catalogue. Station buttons now receive click events directly; menu no longer manipulates the global game-focus counter, and Escape/native game menus provide an emergency close path. If the server mission integration is not installed, your player may see only the bundled preset names instead of the server's custom list. Changes require rebuilding, signing and republishing the client PBO.
 
 
-A new toggleable radio panel is included. In DayZ **Settings > Controls**, find **NekoWave Radio → Toggle Radio Menu**. The default is **F7**, and you can remap or clear it just like other DayZ controls. Some other mods may also use F7, so change it if there is a conflict.
+A new toggleable radio panel is included. In DayZ **Settings > Controls**, find **AuroraKitsuneRadio Radio → Toggle Radio Menu**. The default is **F7**, and you can remap or clear it just like other DayZ controls. Some other mods may also use F7, so change it if there is a conflict.
 
 - **In a vehicle:** press your assigned hotkey to open/close the station picker; browse eight stations per page, select any of the 48 presets or switch the stream off. Radio_Fungi cassette attachments still have priority.
 - **With a Personal Radio in your hands:** the same hotkey opens the station catalogue, but the eight handheld FM frequencies must still be tuned on the physical radio. Vehicle-only slots 9–48 cannot be tuned on an unmodified handheld.
@@ -87,13 +87,13 @@ All catalogue slots are now filled (**48/48**). These are third-party streams th
 
 ## Radio_Fungi coexistence
 
-NekoWave Radio pauses its external livestream when it detects an item attached to the vehicle's `Cassette` slot. Removing the cassette lets the chosen livestream resume when the engine is running. **This checks whether a cassette is inserted, not whether the cassette is currently playing.** It does not control Radio_Fungi or alter its files.
+AuroraKitsuneRadio Radio pauses its external livestream when it detects an item attached to the vehicle's `Cassette` slot. Removing the cassette lets the chosen livestream resume when the engine is running. **This checks whether a cassette is inserted, not whether the cassette is currently playing.** It does not control Radio_Fungi or alter its files.
 
 Compatibility with Radio_Fungi and different vehicle mods is **not yet verified in DayZ**. Test both mods together on a staging server before deploying. Stream availability, regional access, and content rights are the server operator's responsibility.
 
 ## Development and credits
 
 - **Original mod:** [offmonreal/LootTeamRadio](https://github.com/offmonreal/LootTeamRadio)
-- **Enhanced fork:** [NekoSuneProjectsForks/NekoWave](https://github.com/NekoSuneProjectsForks/NekoWave)
-- Internal mod and PBO identifiers are now `NekoWave`. Rebuild and reinstall after upgrading; existing player settings remain under `$profile:DayZRadio`.
+- **Enhanced fork:** [NekoSuneProjectsForks/AuroraKitsuneRadio](https://github.com/NekoSuneProjectsForks/NekoWave)
+- Internal mod and PBO identifiers are now `AuroraKitsuneRadio`. Rebuild and reinstall after upgrading; existing player settings remain under `$profile:DayZRadio`.
 - DayZ, MPC-HC, and Radio_Fungi belong to their respective owners.
