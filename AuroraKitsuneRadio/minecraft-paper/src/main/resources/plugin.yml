@@ -2,6 +2,7 @@ name: AuroraKitsuneRadio
 version: '0.1.0'
 main: ca.fumikoecho.auroraradio.AuroraRadioPlugin
 api-version: '1.20.6'
+softdepend: [OpenAudioMc]
 description: Aurora Kitsune radio directory and companion streaming links
 commands:
   radio:

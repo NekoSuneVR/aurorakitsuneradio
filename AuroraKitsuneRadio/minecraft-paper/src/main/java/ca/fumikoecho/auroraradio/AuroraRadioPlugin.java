@@ -1,9 +1,14 @@
 package ca.fumikoecho.auroraradio;
 
 import com.google.gson.*;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import com.craftmend.openaudiomc.api.interfaces.ClientApi;
+import com.craftmend.openaudiomc.api.interfaces.MediaApi;
+import com.craftmend.openaudiomc.api.clients.Client;
+import com.craftmend.openaudiomc.api.media.Media;
 import org.bukkit.command.*;
 import java.net.URI;
 import java.net.http.*;
@@ -12,6 +17,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public final class AuroraRadioPlugin extends JavaPlugin implements CommandExecutor {
+    private static final String MEDIA_ID = "aurora-radio";
     private static final String BASE = "https://aurora-kitsune.fumikoecho.ca";
     private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
     private volatile List<Station> stations = List.of();
@@ -51,6 +57,15 @@ public final class AuroraRadioPlugin extends JavaPlugin implements CommandExecut
             if (!sender.hasPermission("auroraradio.refresh")) { sender.sendMessage("No permission."); return true; }
             updateStations(); sender.sendMessage("Fetching Aurora radio stations asynchronously."); return true;
         }
+        if (args.length > 0 && args[0].equalsIgnoreCase("stop")) {
+            if (!(sender instanceof org.bukkit.entity.Player p)) return true;
+            if (getServer().getPluginManager().isPluginEnabled("OpenAudioMc")) {
+                Client target = ClientApi.getInstance().getClient(p.getUniqueId());
+                if (target != null) MediaApi.getInstance().stopFor(MEDIA_ID, target);
+            }
+            sender.sendMessage("Aurora radio stopped.");
+            return true;
+        }
         if (args.length > 0 && args[0].equalsIgnoreCase("play")) {
             if (!(sender instanceof org.bukkit.entity.Player p)) { sender.sendMessage("Use in game."); return true; }
             List<Station> results = lastResults.get(p.getUniqueId());
@@ -61,7 +76,18 @@ public final class AuroraRadioPlugin extends JavaPlugin implements CommandExecut
             Station station = results.get(index);
             // Minecraft cannot play external HTTP audio via a server-only plugin.
             String url = BASE + station.path();
-            sender.sendMessage(Component.text("Open stream for " + station.name() + " (external player)").clickEvent(ClickEvent.openUrl(url)));
+            if (!getServer().getPluginManager().isPluginEnabled("OpenAudioMc")) {
+                sender.sendMessage("OpenAudioMc must be installed and configured to listen in-game.");
+                return true;
+            }
+            Client target = ClientApi.getInstance().getClient(p.getUniqueId());
+            if (target == null || !target.isConnected()) { sender.sendMessage("Connect to OpenAudioMc audio session first using /audio."); return true; }
+            MediaApi.getInstance().stopFor(MEDIA_ID, target);
+            Media media = new Media(url);
+            media.setMediaId(MEDIA_ID);
+            media.setVolume(50);
+            MediaApi.getInstance().playFor(media, target);
+            sender.sendMessage("Playing " + station.name() + " via OpenAudioMc.");
             return true;
         }
         String query = args.length == 0 || args[0].equalsIgnoreCase("list") ? "" : String.join(" ",args).toLowerCase(Locale.ROOT);
