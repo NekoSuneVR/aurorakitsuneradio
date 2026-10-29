@@ -1,13 +1,27 @@
-# Client mod targets: Fabric, Forge and NeoForge
-The Paper + OpenAudioMc implementation is available now as the supported server-side playback route, although it relies on the OpenAudioMc audio session outside Minecraft's native audio engine.
+# Minecraft client mods: Fabric, Forge and NeoForge
 
-For truly native game audio, a separate client-side streaming audio decoder and OpenAL playback implementation is required per Minecraft loader. Fabric, Forge and NeoForge build targets are **not implemented yet**; this directory is an explicit roadmap, not compiled mod source.
+**Status: planned, not implemented.** This folder currently contains **documentation only**. It has no Gradle build, no loader entrypoints and no client JARs. Do not use `gradle build` here expecting a mod.
 
-Recommended shared architecture:
-- `common`: API data models, name search, selection state, HTTP fetch, playback abstraction.
-- `fabric`: loader entrypoint / client UI / audio engine binding.
-- `forge`: Forge entrypoint / client UI / audio binding.
-- `neoforge`: NeoForge entrypoint / client UI / audio binding.
-- Provide streamed MP3/AAC decoder support before promising all stations will play.
-- Never block the Minecraft render thread or game tick while reading streams.
-- Keep native client audio separate from OpenAudioMc browser fallback.
+## What is required for native in-game audio
+
+The [Paper implementation](../minecraft-paper/README.md) uses OpenAudioMc's external web-audio session. To provide audio directly inside the Minecraft Java client without an external browser session, we need to develop an actual client-side mod for each loader:
+
+| Loader | Build status | Intended installation |
+| --- | --- | --- |
+| Fabric | Not implemented | Eventually copy client JAR to `.minecraft/mods/` with matching Fabric Loader/API |
+| Forge | Not implemented | Eventually copy a Forge-targeted client JAR to `.minecraft/mods/` |
+| NeoForge | Not implemented | Eventually copy a NeoForge-targeted client JAR to `.minecraft/mods/` |
+
+Version-specific builds will be necessary: do not install a Fabric JAR as a Forge or NeoForge JAR.
+
+## Proposed development plan
+
+1. Choose supported Minecraft and loader versions.
+2. Implement common Java API catalogue and station-name search models.
+3. Implement asynchronous HTTPS loading and a search/selection GUI.
+4. Provide a streaming decoder for supported radio codecs (MP3 and AAC where licensed and technically available).
+5. Integrate decoded PCM with the Minecraft/OpenAL sound system on the audio thread, with volume/stop controls.
+6. Implement separate Fabric, Forge and NeoForge loader entrypoints and distribution/build targets.
+7. Test each version in an actual Minecraft client; do not treat successful Gradle compilation as playback validation.
+
+No native mod is being claimed as complete by this README. Until these exist, use [Paper + OpenAudioMc](../minecraft-paper/README.md) or the [browser companion player](../web-player/README.md).

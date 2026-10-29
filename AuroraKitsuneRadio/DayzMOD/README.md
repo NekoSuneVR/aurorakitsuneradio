@@ -1,103 +1,45 @@
-# AuroraKitsuneRadio Radio
+# AuroraKitsuneRadio for DayZ
 
-**Current source version: 0.2.2 (GUI/keybind beta).** The version in `server/mod.cpp` must be copied into the published mod folder when rebuilding; publishing to Steam Workshop remains a separate action.
+**Source status:** experimental, based on LootTeamRadio; not compiled or tested against DayZ in this PR. See [LICENSE](LICENSE).
 
-Live internet radio for DayZ handheld radios and vehicles, with experimental Radio_Fungi cassette coexistence.
+## Requirements
 
-**Based on:** [LootTeamRadio by offmonreal](https://github.com/offmonreal/LootTeamRadio). AuroraKitsuneRadio Radio is an independent fork that retains credit to the original project and its contributors. See [LICENSE](LICENSE) for licensing terms.
+- DayZ client and a server with the required mission integration.
+- Windows computer running [MPC-HC](https://github.com/clsid2/mpc-hc/releases) with **View > Options > Player > Web Interface** enabled on port **13579**.
+- Signed client PBO and server `.bikey` made from this fork.
 
-## Features
+Audio is played locally using MPC-HC, not streamed as spatial DayZ in-world audio.
 
-- 8–48 configurable internet radio stations, including TruckersFM, NekoSune Community Radio, NCS-themed streams and Capital FM UK.
-- In-car radio presets using chat commands, without needing a handheld radio item.
-- Existing Personal Radio support.
-- Radio_Fungi coexistence: automatically pauses the livestream when a cassette is detected in a vehicle's `Cassette` attachment slot.
-- Per-player volume settings. Radio audio plays locally through MPC-HC, **not** as shared in-game vehicle audio.
+## Build from source
 
-## Setup
+1. Work from **this `DayzMOD/` directory** (after checking out the repository).
+2. Install a suitable DayZ PBO packer (e.g. armake2) and DayZ Tools for signing.
+3. Build and inspect the mod:
+   ```sh
+   armake2 build mod-src/AuroraKitsuneRadio AuroraKitsuneRadio.pbo
+   armake2 inspect AuroraKitsuneRadio.pbo
+   ```
+4. Place the PBO in `Build/@AuroraKitsuneRadio/addons/`; use the template in `Build/@AuroraKitsuneRadio/` for release packaging.
+5. Sign the PBO with DayZ Tools using a private key that stays **outside Git**; distribute its `.bisign` alongside the PBO and place the corresponding `.bikey` on the server.
+6. Integrate the mission source before joining the server. Test game script logs and launcher keybindings on a separate client.
 
-1. Install [MPC-HC](https://github.com/clsid2/mpc-hc/releases) on Windows and keep it running.
-2. In **View > Options > Player > Web Interface**, enable **Listen on port** and enter `13579`.
-3. Install a matching signed AuroraKitsuneRadio Radio client mod and join a server that has integrated its mission-side station configuration.
-4. Use a battery-powered **Personal Radio** in your hands, or enter a vehicle with its engine running and select a live station.
+Detailed steps: [docs/BUILD.md](docs/BUILD.md) and [docs/SERVER.md](docs/SERVER.md). **Do not replace** an existing mission `init.c` wholesale with `server/mission-radio-snippet.c` — merge the required methods into it.
 
-## Remote GitHub station catalogue (v0.2.2 test mode)
+## How to use
 
-At mission startup the Windows client requests the JSON catalogue asynchronously from:
+- Hold an operational battery-powered Personal Radio and tune one of its supported physical FM frequencies, **or** enter a vehicle with its engine running.
+- Press **F7** (remappable in DayZ Controls) to open the station menu while holding the radio or sitting in a vehicle.
+- The vehicle menu can search names in the Aurora API catalogue and page through results; choose a station to listen through MPC-HC.
+- `!radio car off` stops vehicle mode; `!radio 50` sets volume (0–100); `!radio help` shows controls. Other `!radio car` commands use server-side legacy presets and require mission integration.
 
-`https://raw.githubusercontent.com/NekoSuneProjectsForks/NekoWave/feature/vehicle-radio-multi-stations/server/radio-stations.json`
+## Station API and existing 48-slot protocol
 
-This **does not require rebuilding the PBO when the JSON content changes** after v0.2.2 is published: edit and commit `server/radio-stations.json` in the linked branch, then reconnect/relaunch the DayZ mission to fetch the latest response. If the request fails (offline, blocked, invalid JSON), the bundled 48 presets remain available. If the active DayZ server sends a station list over the existing RPC, **the server list wins**. Currently, only 8–48 stations are supported; this is a temporary provider and **not yet** a geo-location radio API, geographic search, or an unlimited station library. Future APIs can replace the source and expand the pagination protocol. The HTTP request is made by each client; no Steam Workshop update is needed for subsequent edits to that JSON once this release is installed.
+The source fetches `https://aurora-kitsune.fumikoecho.ca/api/stations`. It keeps **all valid, enabled API entries** in a searchable client catalogue rather than truncating to 48. When you select an API station in a vehicle, the client temporarily maps that station onto **legacy virtual slot 48**, preserving the first eight handheld frequencies. Slot 48 is therefore unavailable as a distinct legacy preset while the API selection is active. An incoming server preset refresh may override the dynamic slot; reselect the desired API station.
 
-## In-game station menu (experimental)
+If API fetching fails, existing bundled/server preset stations remain accessible. Server-provided presets take precedence for the legacy 48-slot configuration, but API catalogue search can still load. Note the current API is downloaded as a whole, and large payloads or international names remain untested in the DayZ client.
 
-**v0.2.2 UI fixes:** Bundled 48-station catalogue is shown even if the server has not supplied station metadata yet. A later server snapshot still replaces the bundled catalogue. Station buttons now receive click events directly; menu no longer manipulates the global game-focus counter, and Escape/native game menus provide an emergency close path. If the server mission integration is not installed, your player may see only the bundled preset names instead of the server's custom list. Changes require rebuilding, signing and republishing the client PBO.
+The Radio_Fungi coexistence logic checks whether a cassette is **inserted**, not whether it is actively playing; test both mods on a staging server.
 
+## Known limitations
 
-A new toggleable radio panel is included. In DayZ **Settings > Controls**, find **AuroraKitsuneRadio Radio → Toggle Radio Menu**. The default is **F7**, and you can remap or clear it just like other DayZ controls. Some other mods may also use F7, so change it if there is a conflict.
-
-- **In a vehicle:** press your assigned hotkey to open/close the station picker; browse eight stations per page, select any of the 48 presets or switch the stream off. Radio_Fungi cassette attachments still have priority.
-- **With a Personal Radio in your hands:** the same hotkey opens the station catalogue, but the eight handheld FM frequencies must still be tuned on the physical radio. Vehicle-only slots 9–48 cannot be tuned on an unmodified handheld.
-- **Elsewhere:** the hotkey does nothing. The panel closes automatically if you leave the vehicle or stop holding the Personal Radio.
-- The panel uses MPC-HC as before; it is not in-game 3D audio. The new UI and keybinding need compilation and in-game testing before release.
-
-## Commands
-
-| Command | Function |
-| --- | --- |
-| `!radio car 1` to `!radio car 48` | Choose a vehicle livestream station |
-| `!radio car` | Select vehicle preset 1 |
-| `!radio car off` | Turn off the vehicle livestream |
-| `!radio car fungi` | Turn off the livestream before using Radio_Fungi |
-| `!radio 50` | Set personal radio volume to 50% (0-100) |
-| `!radio help` | Display player help |
-
-Server admins can edit the station catalogue in `$profile:DayZRadio/radio-stations.json`. See [server setup](docs/SERVER.md) and [build instructions](docs/BUILD.md).
-
-## More stations
-
-The server accepts 8–48 ordered station entries in `$profile:DayZRadio/radio-stations.json`. The first eight retain their original physical handheld frequencies. Extra stations are **vehicle-only** and must use sequential slot IDs and unique virtual frequency keys: slot 9 uses `frequency: 200.9`, slot 10 uses `201.0`, and slot 48 uses `204.8` (formula: `(2000 + slotId) / 10`). These are internal identifiers, not actual DayZ radio frequencies.
-
-The included sample now has **48 stations**, spanning UK radio, Canadian stations, US independent stations, gaming radio, SomaFM, Radio Paradise, TruckersFM, and NekoSune Community Radio. Live endpoints can change or have geographic and licensing restrictions; test them before running a public server. Add/edit entries on the server and run admin `!radio reload` to send the new list to connected players. Clients must use this updated mod version.
-
-**GUI status:** A basic paginated in-game station picker with a configurable toggle hotkey is implemented but untested. Search, categories and favourites are still planned. Until then, select extra stations with `!radio car 9`, `!radio car 10` etc.
-
-### Station catalogue regions
-
-- **UK:** Capital, Heart 80s, BBC World Service, LBC.
-- **Canada:** CIUT Toronto, Rock 101, CFOX, CJAY 92, The Bear, RdMix.
-- **USA:** KEXP, WFMU, SomaFM.
-- **Gaming/community:** TruckersFM, Simulator Radio, NekoSune Community Radio.
-
-These are example stream presets, not endorsements, and they have not been tested with MPC-HC in DayZ. The bundled catalogue is a server default; an existing `$profile:DayZRadio/radio-stations.json` takes priority. Add the new entries to that file to upgrade an existing server, then run `!radio reload`.
-
-### Added electronic and lo-fi streams
-
-- NCS-themed Dubstep, Trap, Phonk and Pop via the third-party CLIAMP streams.
-- CLIAMP Lo-fi Hip Hop, Synthwave, EDM, Chiptunes and Amiga Tracker.
-- SomaFM Cliqhop IDM and Retro Lofi Chiptune Radio.
-
-These are third-party direct stream addresses, **not official NCS broadcasts**. The CLIAMP chiptune and Amiga stations may be temporarily quiet. Official Monstercat and Chillhop services provide listening channels, but no independently verified, stable, directly usable MPC-HC stream URLs were added for them; do not mistake a web player URL or YouTube live URL for an MP3 stream. Check third-party terms, licensing, uptime and regional availability.
-
-### Hardstyle, uptempo, frenchcore and dubstep
-
-Slots **39–48** include MixStream Hardstyle, Platinum Hardstyle, Hardstyle FM, Real Hardstyle Radio, Technolovers Frenchcore, two FrenchcoreRadio.eu endpoints (including a channel carrying uptempo mixes), FrenchcoreRadio.nl, and two SomaFM Dub Step Beyond quality options.
-
-All catalogue slots are now filled (**48/48**). These are third-party streams that might be offline, have certificate/redirect issues, or limit access by region. In particular, direct HTTPS links to IP addresses may fail certificate validation on some players. Test each URL in MPC-HC from the client PC before using it. The two SomaFM entries are the same channel at different bitrates, and should not be described as separate programming.
-
-## Radio_Fungi coexistence
-
-AuroraKitsuneRadio Radio pauses its external livestream when it detects an item attached to the vehicle's `Cassette` slot. Removing the cassette lets the chosen livestream resume when the engine is running. **This checks whether a cassette is inserted, not whether the cassette is currently playing.** It does not control Radio_Fungi or alter its files.
-
-Compatibility with Radio_Fungi and different vehicle mods is **not yet verified in DayZ**. Test both mods together on a staging server before deploying. Stream availability, regional access, and content rights are the server operator's responsibility.
-
-## Development and credits
-
-- **Original mod:** [offmonreal/LootTeamRadio](https://github.com/offmonreal/LootTeamRadio)
-- **Enhanced fork:** [NekoSuneProjectsForks/AuroraKitsuneRadio](https://github.com/NekoSuneProjectsForks/NekoWave)
-- Internal mod and PBO identifiers are now `AuroraKitsuneRadio`. Rebuild and reinstall after upgrading; existing player settings remain under `$profile:DayZRadio`.
-- DayZ, MPC-HC, and Radio_Fungi belong to their respective owners.
-
-## Aurora Kitsune station API (PR #1 follow-up)\n\nThe Windows client now requests `https://aurora-kitsune.fumikoecho.ca/api/stations` and reads each enabled station `name` and relative `stream_path`. Playback URLs combine the fixed HTTPS API origin and the relative stream path. The F7 menu includes a case-insensitive name search over the loaded stations. The existing playlist, in-game controls and server RPC still restrict playable stations to **48** (first 48 valid enabled entries from API response); this is not yet an unlimited searchable catalogue. A server-provided station snapshot still takes precedence. If the API is unavailable, the bundled stations remain usable. Changes require rebuilding and testing a signed client PBO; API access and DayZ compilation have not been verified.\n
-### Full API catalogue browsing
-The F7 menu now stores every valid enabled API station in a separate client-side catalogue and searches it by station name (not limited to 48). Vehicle playback uses one reserved dynamic legacy preset (slot 48) which is rewritten with the selected stream URL; the other 47 presets and the eight physical handheld frequencies remain in the old protocol. The selected stream is local to the client. API catalogue entries are held in memory and no thousands-entry station RPC is sent. This is an experimental adapter, not an unlimited server-side playlist. When server RPCs refresh the legacy station map the dynamic slot can be overwritten; re-select the API station. Large JSON payloads, non-Latin names, DayZ compilation and actual streaming remain untested.\n
+No build or client gameplay validation has been run; PBO layout/input registration, script syntax, RPC, huge-JSON handling, audio codec support, and UI behavior still require manual testing. GitHub commits do **not** update any Steam Workshop listing automatically. Publish only through your authorized Steam/DayZ Tools account.
