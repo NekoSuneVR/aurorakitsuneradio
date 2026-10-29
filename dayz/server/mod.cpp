@@ -1,0 +1,10 @@
+name = "AuroraKitsuneRadio Radio";
+picture = "";
+logoSmall = "";
+logo = "";
+logoOver = "";
+tooltip = "AuroraKitsuneRadio Radio";
+overview = "Live internet radio for DayZ handheld radios and vehicles. Experimental Radio_Fungi cassette coexistence. Fork of LootTeamRadio by offmonreal.";
+action = "https://github.com/NekoSuneProjectsForks/NekoWave";
+author = "NekoSuneProjectsForks (fork of offmonreal/LootTeamRadio)";
+version = "0.2.2";
