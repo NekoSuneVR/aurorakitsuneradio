@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AuroraKitsuneRadio</title><style>
+:root{font:16px system-ui;color:#e8eafa;background:#12131e}body{max-width:850px;margin:30px auto;padding:0 16px}
+input,button{padding:12px;border:1px solid #4c4f67;border-radius:8px;background:#242638;color:inherit}input{width:calc(100% - 26px)}
+button{cursor:pointer;margin:4px}.station{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 4px;border-bottom:1px solid #333649}
+.muted{color:#adb1c9}audio{width:100%;margin:12px 0}#rows{min-height:150px}
+</style></head><body>
+<h1>AuroraKitsuneRadio</h1><p class="muted">Browser companion player for Minecraft and other games. Play audio locally while gaming.</p>
+<label>Search stations<input id="query" placeholder="Name, country or genre"></label>
+<p id="status">Loading…</p><div id="rows"></div><button id="prev">Previous</button><span id="pagination"></span><button id="next">Next</button>
+<h2 id="current">Nothing playing</h2><audio id="audio" controls preload="none"></audio>
+<script>
+const API='https://aurora-kitsune.fumikoecho.ca/api/stations',ORIGIN='https://aurora-kitsune.fumikoecho.ca';
+let stations=[],filtered=[],page=0;const $=id=>document.getElementById(id),size=30;
+function safePath(p){return typeof p==='string'&&p.startsWith('/stream/')&&!p.includes('..')&&!/[?#\\]/.test(p)&&!p.startsWith('//')}
+function refresh(){let q=$('query').value.toLocaleLowerCase().trim();filtered=stations.filter(s=>(s.name+' '+s.country+' '+s.genre).toLocaleLowerCase().includes(q));page=0;draw()}
+function draw(){const count=Math.max(1,Math.ceil(filtered.length/size));page=Math.max(0,Math.min(page,count-1));$('rows').replaceChildren();for(const s of filtered.slice(page*size,(page+1)*size)){const div=document.createElement('div'),name=document.createElement('span'),btn=document.createElement('button');div.className='station';name.textContent=s.name+' · '+s.country+' · '+s.genre;btn.textContent='Listen';btn.onclick=()=>{const audio=$('audio');audio.src=ORIGIN+s.stream_path;$('current').textContent=s.name;audio.play().catch(()=>{$('status').textContent='Playback failed; stream may be unavailable or blocked by the browser.'})};div.append(name,btn);$('rows').append(div)}$('pagination').textContent='Page '+(page+1)+'/'+count;$('status').textContent=filtered.length+' matching / '+stations.length+' stations'}
+$('prev').onclick=()=>{page--;draw()};$('next').onclick=()=>{page++;draw()};$('query').oninput=refresh;
+fetch(API).then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(data=>{if(!Array.isArray(data.stations))throw Error('Invalid data');stations=data.stations.filter(s=>s.enabled===true&&typeof s.name==='string'&&safePath(s.stream_path));refresh()}).catch(e=>$('status').textContent='Unable to load stations: '+e.message+'. Browser CORS permissions may also be required.');
+</script></body></html>

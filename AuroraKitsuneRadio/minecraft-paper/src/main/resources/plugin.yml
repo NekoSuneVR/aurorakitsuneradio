@@ -1,0 +1,12 @@
+name: AuroraKitsuneRadio
+version: '0.1.0'
+main: ca.fumikoecho.auroraradio.AuroraRadioPlugin
+api-version: '1.20.6'
+description: Aurora Kitsune radio directory and companion streaming links
+commands:
+  radio:
+    description: List and search radio stations
+    usage: /radio [search words|list|refresh|play number]
+permissions:
+  auroraradio.refresh:
+    default: op
