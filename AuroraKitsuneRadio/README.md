@@ -39,3 +39,7 @@ SourceMod audio support is **not implemented**. The supplied Hive365 archives co
 ## Status and licensing
 
 This is a starter project: not yet built or game-tested. Respect radio stream licensing and API usage limits. No proprietary Hive365 binaries or copied code are included.
+
+## DayZ mod
+
+The DayZ source, build template, server mission integration and documentation now live under [`DayzMOD/`](DayzMOD/). Run the build instructions from that subdirectory; its internal PBO prefix and virtual asset paths remain `AuroraKitsuneRadio` (the new parent folder is a repository organization change, not an extra PBO path component).
