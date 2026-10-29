@@ -70,6 +70,6 @@ The stream URL becomes `https://aurora-kitsune.fumikoecho.ca/stream/CA/example-s
 
 ## Development and release status
 
-This project is being developed in [PR #1](https://github.com/NekoSuneVR/gameMods-aura-kitsune-lists/pull/1); modifications on the feature branch are not automatically released on Steam Workshop or installed to game servers. No now-playing integration is implemented yet. Avoid shipping source as a compiled release or assuming every listed station is playable. Licenses and stream distribution rights remain the operator's responsibility.
+This project is being developed in [PR #1](https://github.com/NekoSuneVR/aurorakitsuneradio/pull/1); modifications on the feature branch are not automatically released on Steam Workshop or installed to game servers. No now-playing integration is implemented yet. Avoid shipping source as a compiled release or assuming every listed station is playable. Licenses and stream distribution rights remain the operator's responsibility.
 
 The DayZ fork retains credit to the original [LootTeamRadio](https://github.com/offmonreal/LootTeamRadio) project; consult [dayz/LICENSE](dayz/LICENSE).
