@@ -1,5 +1,5 @@
 // Default catalogue mirrored from server/radio-stations.json. Used only until the server snapshot arrives.
-class NekoWaveBundledStations
+class AuroraKitsuneRadioBundledStations
 {
 	static void LoadIfMissing()
 	{
@@ -54,6 +54,6 @@ class NekoWaveBundledStations
 		data = data + ";47|2047|Dubstep - SomaFM Dub Step Beyond|https://ice5.somafm.com/dubstep-128-mp3";
 		data = data + ";48|2048|Dubstep - SomaFM High Quality|https://ice5.somafm.com/dubstep-256-mp3";
 		LootRadioState.SetStationsFromString(data);
-		Print("[NekoWave] Loaded bundled station list while waiting for server RPC.");
+		Print("[AuroraKitsuneRadio] Loaded bundled station list while waiting for server RPC.");
 	}
 }

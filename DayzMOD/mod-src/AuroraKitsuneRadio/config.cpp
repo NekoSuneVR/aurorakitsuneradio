@@ -1,10 +1,10 @@
 class CfgMods
 {
-	class NekoWave
+	class AuroraKitsuneRadio
 	{
-		name = "NekoWave Radio";
+		name = "AuroraKitsuneRadio Radio";
 		version = "0.2.2";
-		inputs = "NekoWave/inputs.xml";
+		inputs = "AuroraKitsuneRadio/inputs.xml";
 		type = "mod";
 		dependencies[] = {"Game", "World", "Mission"};
 		class defs
@@ -12,19 +12,19 @@ class CfgMods
 			class gameScriptModule
 			{
 				value = "";
-				files[] = {"NekoWave/3_Game"};
+				files[] = {"AuroraKitsuneRadio/3_Game"};
 			};
 			class missionScriptModule
 			{
 				value = "";
-				files[] = {"NekoWave/5_Mission"};
+				files[] = {"AuroraKitsuneRadio/5_Mission"};
 			};
 		};
 	};
 };
 class CfgPatches
 {
-	class NekoWave
+	class AuroraKitsuneRadio
 	{
 		units[] = {};
 		weapons[] = {};

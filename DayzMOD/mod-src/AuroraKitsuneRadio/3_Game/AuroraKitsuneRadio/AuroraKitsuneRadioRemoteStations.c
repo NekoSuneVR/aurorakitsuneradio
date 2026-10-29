@@ -1,25 +1,25 @@
 // Temporary public GitHub catalogue provider, replaceable by a future geo-radio API.
 // Download client-side; never block the DayZ update thread.
-class NekoWaveStationFetchCallback : RestCallback
+class AuroraKitsuneRadioStationFetchCallback : RestCallback
 {
 	override void OnSuccess(string data, int dataSize)
 	{
-		NekoWaveRemoteStations.OnSuccess(data);
+		AuroraKitsuneRadioRemoteStations.OnSuccess(data);
 	}
 	override void OnError(int errorCode)
 	{
-		NekoWaveRemoteStations.OnFailure("HTTP callback error " + errorCode.ToString());
+		AuroraKitsuneRadioRemoteStations.OnFailure("HTTP callback error " + errorCode.ToString());
 	}
 	override void OnTimeout()
 	{
-		NekoWaveRemoteStations.OnFailure("request timed out");
+		AuroraKitsuneRadioRemoteStations.OnFailure("request timed out");
 	}
 }
-class NekoWaveRemoteStations
+class AuroraKitsuneRadioRemoteStations
 {
 	static const string BASE_URL = "https://raw.githubusercontent.com/NekoSuneProjectsForks/NekoWave/feature/vehicle-radio-multi-stations/";
 	static const string STATIONS_PATH = "server/radio-stations.json";
-	static ref NekoWaveStationFetchCallback s_Callback;
+	static ref AuroraKitsuneRadioStationFetchCallback s_Callback;
 	static bool s_Pending = false;
 	static int s_LastRequestAt = -120000;
 	static bool s_HasRemote = false;
@@ -40,12 +40,12 @@ class NekoWaveRemoteStations
 		RestContext ctx = GetRestApi().GetRestContext(BASE_URL);
 		if (!ctx)
 		{
-			Print("[NekoWave] Remote catalogue REST context unavailable; using bundled stations.");
+			Print("[AuroraKitsuneRadio] Remote catalogue REST context unavailable; using bundled stations.");
 			return;
 		}
 		s_Pending = true;
-		s_Callback = new NekoWaveStationFetchCallback();
-		Print("[NekoWave] Requesting public GitHub station catalogue...");
+		s_Callback = new AuroraKitsuneRadioStationFetchCallback();
+		Print("[AuroraKitsuneRadio] Requesting public GitHub station catalogue...");
 		ctx.GET(s_Callback, STATIONS_PATH);
 	}
 
@@ -53,7 +53,7 @@ class NekoWaveRemoteStations
 	{
 		s_Pending = false;
 		s_Callback = null;
-		Print("[NekoWave] Catalogue request failed: " + message + "; retaining current stations.");
+		Print("[AuroraKitsuneRadio] Catalogue request failed: " + message + "; retaining current stations.");
 	}
 
 	static void OnSuccess(string data)
@@ -110,6 +110,6 @@ class NekoWaveRemoteStations
 		LootRadioState.SetStationsFromString(snapshot);
 		s_HasRemote = true;
 		s_Revision++;
-		Print("[NekoWave] GitHub catalogue loaded: " + count.ToString() + " stations.");
+		Print("[AuroraKitsuneRadio] GitHub catalogue loaded: " + count.ToString() + " stations.");
 	}
 }

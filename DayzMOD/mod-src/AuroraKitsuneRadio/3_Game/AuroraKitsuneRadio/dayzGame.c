@@ -27,7 +27,7 @@ modded class DayZGame
 			if (ctx.Read(data))
 			{
 				Print("[LootRadio] stations RPC received");
-				if (data.param1.Length() > 0) NekoWaveRemoteStations.MarkServerAuthoritative();
+				if (data.param1.Length() > 0) AuroraKitsuneRadioRemoteStations.MarkServerAuthoritative();
 				LootRadioState.SetStationsFromString(data.param1);
 			}
 			else

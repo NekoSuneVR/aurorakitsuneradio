@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modded_inputs>
+  <inputs>
+    <actions>
+      <input name="UAAuroraKitsuneRadioToggle" loc="STR_AURORAKITSUNERADIO_TOGGLE" />
+    </actions>
+    <sorting name="aurorakitsuneradio" loc="STR_AURORAKITSUNERADIO_CONTROLS">
+      <input name="UAAuroraKitsuneRadioToggle" />
+    </sorting>
+  </inputs>
+  <preset>
+    <input name="UAAuroraKitsuneRadioToggle">
+      <btn name="kF7" />
+    </input>
+  </preset>
+</modded_inputs>

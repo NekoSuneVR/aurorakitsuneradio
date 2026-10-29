@@ -1,5 +1,5 @@
 // Client-only paginated catalogue. No calls into Radio_Fungi's scripts.
-class NekoWaveMenu : ScriptedWidgetEventHandler
+class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 {
 	protected Widget m_Root;
 	protected ref array<ButtonWidget> m_Rows;
@@ -13,13 +13,13 @@ class NekoWaveMenu : ScriptedWidgetEventHandler
 	protected bool m_CursorOwned;
 	protected int m_LastCatalogueRevision = -1;
 
-	void NekoWaveMenu(bool inVehicle)
+	void AuroraKitsuneRadioMenu(bool inVehicle)
 	{
 		m_InVehicle = inVehicle;
 		m_Page = 0;
-		NekoWaveBundledStations.LoadIfMissing();
-		NekoWaveRemoteStations.Fetch();
-		m_Root = GetGame().GetWorkspace().CreateWidgets("NekoWave/gui/layouts/nekowave.layout");
+		AuroraKitsuneRadioBundledStations.LoadIfMissing();
+		AuroraKitsuneRadioRemoteStations.Fetch();
+		m_Root = GetGame().GetWorkspace().CreateWidgets("AuroraKitsuneRadio/gui/layouts/aurorakitsuneradio.layout");
 		if (!m_Root) return;
 		m_Root.SetHandler(this);
 		m_Status = TextWidget.Cast(m_Root.FindAnyWidget("NWStatus"));
@@ -47,9 +47,9 @@ class NekoWaveMenu : ScriptedWidgetEventHandler
 
 	void RefreshIfChanged()
 	{
-		if (m_LastCatalogueRevision != NekoWaveRemoteStations.s_Revision)
+		if (m_LastCatalogueRevision != AuroraKitsuneRadioRemoteStations.s_Revision)
 		{
-			m_LastCatalogueRevision = NekoWaveRemoteStations.s_Revision;
+			m_LastCatalogueRevision = AuroraKitsuneRadioRemoteStations.s_Revision;
 			Refresh();
 		}
 	}
@@ -108,7 +108,7 @@ class NekoWaveMenu : ScriptedWidgetEventHandler
 			{
 				int id = m_Page * 8 + i + 1;
 				if (m_InVehicle) LootRadioState.SetCarStation(id.ToString());
-				else NotificationSystem.AddNotificationExtended(5.0, "NekoWave", "Handheld: tune to the matching physical frequency; stations 9+ require a vehicle.");
+				else NotificationSystem.AddNotificationExtended(5.0, "AuroraKitsuneRadio", "Handheld: tune to the matching physical frequency; stations 9+ require a vehicle.");
 				Close();
 				return true;
 			}

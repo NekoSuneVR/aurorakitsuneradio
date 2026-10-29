@@ -1,4 +1,4 @@
-// NekoWave Radio — client-side state + MPC-HC controller (Phase 3)
+// AuroraKitsuneRadio Radio — client-side state + MPC-HC controller (Phase 3)
 // Сервер раздаёт карту частот (RPC 777001), мод:
 //  1) пишет $profile:DayZRadio/stations.m3u (плейлист = слоты частот);
 //  2) находит абсолютный путь через API MPC-HC (browse.json);

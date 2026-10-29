@@ -1,11 +1,11 @@
-// NekoWave Radio — client mission hooks (Phase 3)
+// AuroraKitsuneRadio Radio — client mission hooks (Phase 3)
 // OnUpdate: опрос Personal Radio в руках; RPC 777001 обрабатывается в DayZGame.
 
 modded class MissionGameplay
 {
 	private int m_LootRadioTicks;
-	private ref NekoWaveMenu m_NekoWaveMenu;
-	private bool m_NekoWaveInputChecked;
+	private ref AuroraKitsuneRadioMenu m_AuroraKitsuneRadioMenu;
+	private bool m_AuroraKitsuneRadioInputChecked;
 	private int m_AnnouncedFrequency = -1;
 	private bool m_WasWorking = false;
 	private string m_AnnouncedName = "";
@@ -18,7 +18,7 @@ modded class MissionGameplay
 	{
 		m_LootRadioTicks = 0;
 		LootRadioState.BeginSession();
-		NekoWaveRemoteStations.Fetch(true);
+		AuroraKitsuneRadioRemoteStations.Fetch(true);
 	}
 
 	override void OnUpdate(float timeslice)
@@ -26,12 +26,12 @@ modded class MissionGameplay
 		super.OnUpdate(timeslice);
 
 		// Poll before the radio's slower playback tick so the hotkey is responsive.
-		UAInput menuInput = GetUApi().GetInputByName("UANekoWaveToggle");
-		if (!m_NekoWaveInputChecked)
+		UAInput menuInput = GetUApi().GetInputByName("UAAuroraKitsuneRadioToggle");
+		if (!m_AuroraKitsuneRadioInputChecked)
 		{
-			m_NekoWaveInputChecked = true;
-			if (!menuInput) Print("[NekoWave] ERROR: UANekoWaveToggle not registered. Check inputs.xml in client PBO and CfgMods.inputs.");
-			else Print("[NekoWave] UANekoWaveToggle registered; default F7 or player custom binding.");
+			m_AuroraKitsuneRadioInputChecked = true;
+			if (!menuInput) Print("[AuroraKitsuneRadio] ERROR: UAAuroraKitsuneRadioToggle not registered. Check inputs.xml in client PBO and CfgMods.inputs.");
+			else Print("[AuroraKitsuneRadio] UAAuroraKitsuneRadioToggle registered; default F7 or player custom binding.");
 		}
 		PlayerBase menuPlayer = PlayerBase.Cast(GetGame().GetPlayer());
 		bool inCar = false;
@@ -42,39 +42,39 @@ modded class MissionGameplay
 			EntityAI held = menuPlayer.GetHumanInventory().GetEntityInHands();
 			holdingRadio = ItemTransmitter.Cast(held) != null;
 		}
-		if (m_NekoWaveMenu && m_NekoWaveMenu.IsOpen() && (!inCar && !holdingRadio))
+		if (m_AuroraKitsuneRadioMenu && m_AuroraKitsuneRadioMenu.IsOpen() && (!inCar && !holdingRadio))
 		{
-			m_NekoWaveMenu.Close();
-			m_NekoWaveMenu = null;
+			m_AuroraKitsuneRadioMenu.Close();
+			m_AuroraKitsuneRadioMenu = null;
 		}
 		// Never leave the radio cursor active under a native pause/inventory menu.
-		if (m_NekoWaveMenu && m_NekoWaveMenu.IsOpen() && GetGame().GetUIManager().GetMenu())
+		if (m_AuroraKitsuneRadioMenu && m_AuroraKitsuneRadioMenu.IsOpen() && GetGame().GetUIManager().GetMenu())
 		{
-			m_NekoWaveMenu.Close();
-			m_NekoWaveMenu = null;
+			m_AuroraKitsuneRadioMenu.Close();
+			m_AuroraKitsuneRadioMenu = null;
 		}
 		// Escape/pause is an emergency exit even if the Close button loses focus.
 		UAInput escapeInput = GetUApi().GetInputByName("UAMenu");
-		if (m_NekoWaveMenu && m_NekoWaveMenu.IsOpen() && escapeInput && escapeInput.LocalPress())
+		if (m_AuroraKitsuneRadioMenu && m_AuroraKitsuneRadioMenu.IsOpen() && escapeInput && escapeInput.LocalPress())
 		{
-			m_NekoWaveMenu.Close();
-			m_NekoWaveMenu = null;
+			m_AuroraKitsuneRadioMenu.Close();
+			m_AuroraKitsuneRadioMenu = null;
 		}
 		if (menuInput && menuInput.LocalPress())
 		{
-			if (m_NekoWaveMenu && m_NekoWaveMenu.IsOpen())
+			if (m_AuroraKitsuneRadioMenu && m_AuroraKitsuneRadioMenu.IsOpen())
 			{
-				m_NekoWaveMenu.Close();
-				m_NekoWaveMenu = null;
+				m_AuroraKitsuneRadioMenu.Close();
+				m_AuroraKitsuneRadioMenu = null;
 			}
 			else if ((inCar || holdingRadio) && !GetGame().GetUIManager().GetMenu())
 				{
-				m_NekoWaveMenu = new NekoWaveMenu(inCar);
-				if (!m_NekoWaveMenu.IsOpen()) Print("[NekoWave] ERROR: menu widget creation failed. Check NekoWave/gui/layouts/nekowave.layout inside the client PBO.");
+				m_AuroraKitsuneRadioMenu = new AuroraKitsuneRadioMenu(inCar);
+				if (!m_AuroraKitsuneRadioMenu.IsOpen()) Print("[AuroraKitsuneRadio] ERROR: menu widget creation failed. Check AuroraKitsuneRadio/gui/layouts/aurorakitsuneradio.layout inside the client PBO.");
 			}
 		}
 
-		if (m_NekoWaveMenu && m_NekoWaveMenu.IsOpen()) m_NekoWaveMenu.RefreshIfChanged();
+		if (m_AuroraKitsuneRadioMenu && m_AuroraKitsuneRadioMenu.IsOpen()) m_AuroraKitsuneRadioMenu.RefreshIfChanged();
 		m_LootRadioTicks++;
 		if (m_LootRadioTicks < 30)
 			return;
@@ -252,7 +252,7 @@ modded class MissionGameplay
 
 	void ~MissionGameplay()
 	{
-		if (m_NekoWaveMenu && m_NekoWaveMenu.IsOpen()) m_NekoWaveMenu.Close();
+		if (m_AuroraKitsuneRadioMenu && m_AuroraKitsuneRadioMenu.IsOpen()) m_AuroraKitsuneRadioMenu.Close();
 		LootRadioState.StopSession();
 	}
 }
