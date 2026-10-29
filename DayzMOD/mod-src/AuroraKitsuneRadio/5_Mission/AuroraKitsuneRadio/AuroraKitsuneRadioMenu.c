@@ -8,6 +8,8 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 	protected ButtonWidget m_Off;
 	protected ButtonWidget m_Close;
 	protected TextWidget m_Status;
+    protected EditBoxWidget m_Search;
+    protected ref array<int> m_FilteredSlots;
 	protected int m_Page;
 	protected bool m_InVehicle;
 	protected bool m_CursorOwned;
@@ -23,6 +25,9 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 		if (!m_Root) return;
 		m_Root.SetHandler(this);
 		m_Status = TextWidget.Cast(m_Root.FindAnyWidget("NWStatus"));
+        m_Search = EditBoxWidget.Cast(m_Root.FindAnyWidget("NWSearch"));
+        if (m_Search) m_Search.SetHandler(this);
+        m_FilteredSlots = new array<int>();
 		m_Rows = new array<ButtonWidget>();
 		for (int i = 1; i <= 8; i++)
 			{
@@ -54,47 +59,67 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 		}
 	}
 
-	void Refresh()
-	{
-		if (!m_Root) return;
-		int total = 0;
-		if (LootRadioState.s_SlotIds) total = LootRadioState.s_SlotIds.Count();
-		if (m_Status)
-		{
-			string kind = "Handheld: tune the physical radio to a matching FM frequency";
-			if (m_InVehicle) kind = "Vehicle: select a stream (cassette has priority)";
-			m_Status.SetText(kind + " | Page " + (m_Page + 1).ToString());
-		}
-		for (int i = 0; i < 8; i++)
-		{
-			ButtonWidget btn = m_Rows[i];
-			if (!btn) continue;
-			int id = m_Page * 8 + i + 1;
-			if (id > total)
-			{
-				btn.Show(false);
-				continue;
-			}
-			btn.Show(true);
-			string name = "Unavailable";
-			if (LootRadioState.s_SlotIds)
-			{
-				for (int j = 0; j < LootRadioState.s_SlotIds.Count(); j++)
-				{
-					int freq = LootRadioState.s_SlotIds.GetKey(j);
-					if (LootRadioState.s_SlotIds.Get(freq) == id && LootRadioState.s_Names && LootRadioState.s_Names.Contains(freq))
-					{
-						name = LootRadioState.s_Names.Get(freq);
-						break;
-					}
-				}
-			}
-			btn.SetText(id.ToString() + " - " + name);
-		}
-		if (m_Prev) m_Prev.Show(m_Page > 0);
-		if (m_Next) m_Next.Show((m_Page + 1) * 8 < total);
-		if (m_Off) m_Off.Show(m_InVehicle);
-	}
+
+    override bool OnChange(Widget w, int x, int y, bool finished)
+    {
+        if (w == m_Search) { m_Page = 0; Refresh(); return true; }
+        return false;
+    }
+    void Refresh()
+    {
+        if (!m_Root) return;
+        m_FilteredSlots.Clear();
+        string query = "";
+        if (m_Search) { query = m_Search.GetText(); query.ToLower(); }
+        if (LootRadioState.s_SlotIds)
+        {
+            for (int slot = 1; slot <= 48; slot++)
+            {
+                for (int j = 0; j < LootRadioState.s_SlotIds.Count(); j++)
+                {
+                    int freq = LootRadioState.s_SlotIds.GetKey(j);
+                    if (LootRadioState.s_SlotIds.Get(freq) != slot) continue;
+                    string name = "";
+                    if (LootRadioState.s_Names && LootRadioState.s_Names.Contains(freq)) name = LootRadioState.s_Names.Get(freq);
+                    string comparison = name;
+                    comparison.ToLower();
+                    if (query == "" || comparison.Contains(query)) m_FilteredSlots.Insert(slot);
+                    break;
+                }
+            }
+        }
+        int total = m_FilteredSlots.Count();
+        if (m_Page * 8 >= total) m_Page = 0;
+        if (m_Status)
+        {
+            string kind = "Handheld: tune the physical FM frequency";
+            if (m_InVehicle) kind = "Vehicle: choose stream (cassette priority)";
+            m_Status.SetText(kind + " | " + total.ToString() + " matches | Page " + (m_Page + 1).ToString());
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            ButtonWidget btn = m_Rows[i];
+            if (!btn) continue;
+            int index = m_Page * 8 + i;
+            if (index >= total) { btn.Show(false); continue; }
+            int id = m_FilteredSlots[index];
+            string name = "Unavailable";
+            for (int j = 0; j < LootRadioState.s_SlotIds.Count(); j++)
+            {
+                int freq = LootRadioState.s_SlotIds.GetKey(j);
+                if (LootRadioState.s_SlotIds.Get(freq) == id && LootRadioState.s_Names && LootRadioState.s_Names.Contains(freq))
+                {
+                    name = LootRadioState.s_Names.Get(freq);
+                    break;
+                }
+            }
+            btn.Show(true);
+            btn.SetText(id.ToString() + " - " + name);
+        }
+        if (m_Prev) m_Prev.Show(m_Page > 0);
+        if (m_Next) m_Next.Show((m_Page + 1) * 8 < total);
+        if (m_Off) m_Off.Show(m_InVehicle);
+    }
 
 	override bool OnClick(Widget w, int x, int y, int button)
 	{
@@ -106,7 +131,9 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 		{
 			if (w == m_Rows[i])
 			{
-				int id = m_Page * 8 + i + 1;
+				int index = m_Page * 8 + i;
+                if (!m_FilteredSlots || index >= m_FilteredSlots.Count()) return true;
+                int id = m_FilteredSlots[index];
 				if (m_InVehicle) LootRadioState.SetCarStation(id.ToString());
 				else NotificationSystem.AddNotificationExtended(5.0, "AuroraKitsuneRadio", "Handheld: tune to the matching physical frequency; stations 9+ require a vehicle.");
 				Close();

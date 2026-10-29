@@ -1,4 +1,18 @@
-// Temporary public GitHub catalogue provider, replaceable by a future geo-radio API.
+// Aurora Kitsune catalogue API. Requests are asynchronous; retain bundled stations on errors.
+class AuroraKitsuneApiStation
+{
+ string id;
+ string name;
+ string country;
+ string stream_path;
+ bool enabled;
+}
+class AuroraKitsuneApiResponse
+{
+ ref array<ref AuroraKitsuneApiStation> stations;
+ void AuroraKitsuneApiResponse() { stations = new array<ref AuroraKitsuneApiStation>(); }
+}
+// API response supports names and stream_path, with up to 48 playable legacy slots.
 // Download client-side; never block the DayZ update thread.
 class AuroraKitsuneRadioStationFetchCallback : RestCallback
 {
@@ -17,8 +31,8 @@ class AuroraKitsuneRadioStationFetchCallback : RestCallback
 }
 class AuroraKitsuneRadioRemoteStations
 {
-	static const string BASE_URL = "https://raw.githubusercontent.com/NekoSuneProjectsForks/NekoWave/feature/vehicle-radio-multi-stations/";
-	static const string STATIONS_PATH = "server/radio-stations.json";
+	static const string BASE_URL = "https://aurora-kitsune.fumikoecho.ca/";
+	static const string STATIONS_PATH = "api/stations";
 	static ref AuroraKitsuneRadioStationFetchCallback s_Callback;
 	static bool s_Pending = false;
 	static int s_LastRequestAt = -120000;
@@ -45,7 +59,7 @@ class AuroraKitsuneRadioRemoteStations
 		}
 		s_Pending = true;
 		s_Callback = new AuroraKitsuneRadioStationFetchCallback();
-		Print("[AuroraKitsuneRadio] Requesting public GitHub station catalogue...");
+		Print("[AuroraKitsuneRadio] Requesting Aurora Kitsune station catalogue...");
 		ctx.GET(s_Callback, STATIONS_PATH);
 	}
 
@@ -61,55 +75,51 @@ class AuroraKitsuneRadioRemoteStations
 		s_Pending = false;
 		s_Callback = null;
 		if (s_ServerAuthoritative) return;
-		if (data.Length() < 40 || data.Length() > 200000)
+		if (data.Length() < 40 || data.Length() > 10000000)
 		{
 			OnFailure("invalid response size");
 			return;
 		}
-		LootRadioClientConfig cfg = new LootRadioClientConfig();
-		string error;
-		if (!JsonFileLoader<LootRadioClientConfig>.LoadData(data, cfg, error) || !cfg || !cfg.stations)
-		{
-			OnFailure("invalid JSON " + error);
-			return;
-		}
-		int count = cfg.stations.Count();
-		if (count < 8 || count > 48)
-		{
-			OnFailure("expected 8-48 stations, got " + count.ToString());
-			return;
-		}
-		string snapshot = "";
-		for (int i = 0; i < count; i++)
-		{
-			LootRadioClientStation st = cfg.stations[i];
-			if (!st || st.slotId != i + 1 || st.name == "" || st.name.Contains("|") || st.name.Contains(";") || st.url.Contains("|") || st.url.Contains(";"))
-			{
-				OnFailure("invalid station entry at " + (i + 1).ToString());
-				return;
-			}
-			int fk = Math.Round(st.frequency * 10.0);
-			if (i >= 8 && fk != 2000 + st.slotId)
-			{
-				OnFailure("invalid extended station frequency");
-				return;
-			}
-			if (i < 8 && fk <= 0)
-			{
-				OnFailure("invalid handheld frequency");
-				return;
-			}
-			if (st.url.IndexOf("http://") != 0 && st.url.IndexOf("https://") != 0)
-			{
-				OnFailure("station URL must be HTTP(S)");
-				return;
-			}
-			if (i > 0) snapshot = snapshot + ";";
-			snapshot = snapshot + st.slotId.ToString() + "|" + fk.ToString() + "|" + st.name + "|" + st.url;
-		}
-		LootRadioState.SetStationsFromString(snapshot);
-		s_HasRemote = true;
-		s_Revision++;
-		Print("[AuroraKitsuneRadio] GitHub catalogue loaded: " + count.ToString() + " stations.");
+
+        AuroraKitsuneApiResponse cfg = new AuroraKitsuneApiResponse();
+        string error;
+        if (!JsonFileLoader<AuroraKitsuneApiResponse>.LoadData(data, cfg, error) || !cfg || !cfg.stations)
+        {
+            OnFailure("invalid API JSON " + error);
+            return;
+        }
+        // Legacy playlist and chat command protocol still supports 48 slots.
+        // Keep the eight original handheld frequencies; imported streams are vehicle-only.
+        string snapshot = "";
+        int included = 0;
+        for (int i = 0; i < cfg.stations.Count() && included < 48; i++)
+        {
+            AuroraKitsuneApiStation st = cfg.stations[i];
+            if (!st || !st.enabled || st.name == "" || st.stream_path == "") continue;
+            if (st.name.Contains("|") || st.name.Contains(";") || st.stream_path.Contains("|") || st.stream_path.Contains(";")) continue;
+            if (st.stream_path.IndexOf("/") != 0 || st.stream_path.IndexOf("//") == 0 || st.stream_path.Contains("..") || st.stream_path.Contains("?") || st.stream_path.Contains("#")) continue;
+            int slot = included + 1;
+            int freq = 2000 + slot;
+            if (slot == 1) freq = 878;
+            if (slot == 2) freq = 895;
+            if (slot == 3) freq = 913;
+            if (slot == 4) freq = 919;
+            if (slot == 5) freq = 946;
+            if (slot == 6) freq = 966;
+            if (slot == 7) freq = 997;
+            if (slot == 8) freq = 1025;
+            if (included > 0) snapshot = snapshot + ";";
+            snapshot = snapshot + slot.ToString() + "|" + freq.ToString() + "|" + st.name + "|https://aurora-kitsune.fumikoecho.ca" + st.stream_path;
+            included++;
+        }
+        if (included < 8)
+        {
+            OnFailure("API returned fewer than eight playable stations");
+            return;
+        }
+        LootRadioState.SetStationsFromString(snapshot);
+        s_HasRemote = true;
+        s_Revision++;
+        Print("[AuroraKitsuneRadio] API catalogue loaded: " + included.ToString() + " playable stations (legacy maximum 48).");
 	}
 }
