@@ -39,6 +39,63 @@ class AuroraKitsuneRadioRemoteStations
 	static bool s_HasRemote = false;
 	static bool s_ServerAuthoritative = false;
 	static int s_Revision = 0;
+    static ref array<ref AuroraKitsuneApiStation> s_Catalogue;
+    static int s_SelectedIndex = -1;
+
+    static int Count() { if (!s_Catalogue) return 0; return s_Catalogue.Count(); }
+    static AuroraKitsuneApiStation GetAt(int i) { if (!s_Catalogue || i < 0 || i >= s_Catalogue.Count()) return null; return s_Catalogue[i]; }
+
+    // Use the 48th legacy virtual preset as a single dynamic playback slot.
+    // No 2,893-entry MPC-HC playlist or server RPC required.
+    static bool Tune(int index)
+    {
+        AuroraKitsuneApiStation chosen = GetAt(index);
+        if (!chosen || !chosen.enabled) return false;
+        if (!LootRadioState.s_SlotIds || LootRadioState.s_SlotIds.Count() < 8) return false;
+        string snapshot = "";
+        for (int slot = 1; slot <= 48; slot++)
+        {
+            int freq = 2000 + slot;
+            string name = "-";
+            string url = "-";
+            if (slot <= 8)
+            {
+                if (slot == 1) freq = 878;
+                if (slot == 2) freq = 895;
+                if (slot == 3) freq = 913;
+                if (slot == 4) freq = 919;
+                if (slot == 5) freq = 946;
+                if (slot == 6) freq = 966;
+                if (slot == 7) freq = 997;
+                if (slot == 8) freq = 1025;
+            }
+            if (LootRadioState.s_SlotIds)
+            {
+                for (int k = 0; k < LootRadioState.s_SlotIds.Count(); k++)
+                {
+                    int existingFreq = LootRadioState.s_SlotIds.GetKey(k);
+                    if (LootRadioState.s_SlotIds.Get(existingFreq) != slot) continue;
+                    freq = existingFreq;
+                    if (LootRadioState.s_Names && LootRadioState.s_Names.Contains(existingFreq)) name = LootRadioState.s_Names.Get(existingFreq);
+                    if (LootRadioState.s_Stations && LootRadioState.s_Stations.Contains(existingFreq)) url = LootRadioState.s_Stations.Get(existingFreq);
+                    break;
+                }
+            }
+            if (slot == 48)
+            {
+                freq = 2048;
+                name = chosen.name;
+                url = BASE_URL.Substring(0, BASE_URL.Length() - 1) + chosen.stream_path;
+            }
+            if (slot > 1) snapshot = snapshot + ";";
+            snapshot = snapshot + slot.ToString() + "|" + freq.ToString() + "|" + name + "|" + url;
+        }
+        LootRadioState.SetStationsFromString(snapshot);
+        LootRadioState.SetCarStation("48");
+        s_SelectedIndex = index;
+        s_Revision++;
+        return true;
+    }
 
 	static void MarkServerAuthoritative()
 	{
@@ -88,38 +145,20 @@ class AuroraKitsuneRadioRemoteStations
             OnFailure("invalid API JSON " + error);
             return;
         }
-        // Legacy playlist and chat command protocol still supports 48 slots.
-        // Keep the eight original handheld frequencies; imported streams are vehicle-only.
-        string snapshot = "";
-        int included = 0;
-        for (int i = 0; i < cfg.stations.Count() && included < 48; i++)
+
+        ref array<ref AuroraKitsuneApiStation> accepted = new array<ref AuroraKitsuneApiStation>();
+        for (int i = 0; i < cfg.stations.Count(); i++)
         {
             AuroraKitsuneApiStation st = cfg.stations[i];
             if (!st || !st.enabled || st.name == "" || st.stream_path == "") continue;
             if (st.name.Contains("|") || st.name.Contains(";") || st.stream_path.Contains("|") || st.stream_path.Contains(";")) continue;
             if (st.stream_path.IndexOf("/") != 0 || st.stream_path.IndexOf("//") == 0 || st.stream_path.Contains("..") || st.stream_path.Contains("?") || st.stream_path.Contains("#")) continue;
-            int slot = included + 1;
-            int freq = 2000 + slot;
-            if (slot == 1) freq = 878;
-            if (slot == 2) freq = 895;
-            if (slot == 3) freq = 913;
-            if (slot == 4) freq = 919;
-            if (slot == 5) freq = 946;
-            if (slot == 6) freq = 966;
-            if (slot == 7) freq = 997;
-            if (slot == 8) freq = 1025;
-            if (included > 0) snapshot = snapshot + ";";
-            snapshot = snapshot + slot.ToString() + "|" + freq.ToString() + "|" + st.name + "|https://aurora-kitsune.fumikoecho.ca" + st.stream_path;
-            included++;
+            accepted.Insert(st);
         }
-        if (included < 8)
-        {
-            OnFailure("API returned fewer than eight playable stations");
-            return;
-        }
-        LootRadioState.SetStationsFromString(snapshot);
+        if (accepted.Count() == 0) { OnFailure("no playable API stations"); return; }
+        s_Catalogue = accepted;
         s_HasRemote = true;
         s_Revision++;
-        Print("[AuroraKitsuneRadio] API catalogue loaded: " + included.ToString() + " playable stations (legacy maximum 48).");
+        Print("[AuroraKitsuneRadio] API catalogue indexed: " + accepted.Count().ToString() + " stations, searchable without the 48-slot cap.");
 	}
 }

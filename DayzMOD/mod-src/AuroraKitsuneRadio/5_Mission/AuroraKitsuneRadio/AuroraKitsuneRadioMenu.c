@@ -10,6 +10,7 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 	protected TextWidget m_Status;
     protected EditBoxWidget m_Search;
     protected ref array<int> m_FilteredSlots;
+    protected bool m_ApiMode;
 	protected int m_Page;
 	protected bool m_InVehicle;
 	protected bool m_CursorOwned;
@@ -28,6 +29,7 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
         m_Search = EditBoxWidget.Cast(m_Root.FindAnyWidget("NWSearch"));
         if (m_Search) m_Search.SetHandler(this);
         m_FilteredSlots = new array<int>();
+        m_ApiMode = inVehicle;
 		m_Rows = new array<ButtonWidget>();
 		for (int i = 1; i <= 8; i++)
 			{
@@ -71,7 +73,18 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
         m_FilteredSlots.Clear();
         string query = "";
         if (m_Search) { query = m_Search.GetText(); query.ToLower(); }
-        if (LootRadioState.s_SlotIds)
+        if (m_ApiMode && AuroraKitsuneRadioRemoteStations.Count() > 0)
+        {
+            for (int apiIndex = 0; apiIndex < AuroraKitsuneRadioRemoteStations.Count(); apiIndex++)
+            {
+                AuroraKitsuneApiStation entry = AuroraKitsuneRadioRemoteStations.GetAt(apiIndex);
+                if (!entry) continue;
+                string displayName = entry.name;
+                displayName.ToLower();
+                if (query == "" || displayName.Contains(query)) m_FilteredSlots.Insert(apiIndex);
+            }
+        }
+        else if (LootRadioState.s_SlotIds)
         {
             for (int slot = 1; slot <= 48; slot++)
             {
@@ -104,6 +117,14 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
             if (index >= total) { btn.Show(false); continue; }
             int id = m_FilteredSlots[index];
             string name = "Unavailable";
+            if (m_ApiMode && AuroraKitsuneRadioRemoteStations.Count() > 0)
+            {
+                AuroraKitsuneApiStation station = AuroraKitsuneRadioRemoteStations.GetAt(id);
+                if (station) name = station.name;
+                btn.Show(true);
+                btn.SetText(name);
+                continue;
+            }
             for (int j = 0; j < LootRadioState.s_SlotIds.Count(); j++)
             {
                 int freq = LootRadioState.s_SlotIds.GetKey(j);
@@ -134,7 +155,8 @@ class AuroraKitsuneRadioMenu : ScriptedWidgetEventHandler
 				int index = m_Page * 8 + i;
                 if (!m_FilteredSlots || index >= m_FilteredSlots.Count()) return true;
                 int id = m_FilteredSlots[index];
-				if (m_InVehicle) LootRadioState.SetCarStation(id.ToString());
+				if (m_InVehicle && AuroraKitsuneRadioRemoteStations.Count() > 0) AuroraKitsuneRadioRemoteStations.Tune(id);
+                else if (m_InVehicle) LootRadioState.SetCarStation(id.ToString());
 				else NotificationSystem.AddNotificationExtended(5.0, "AuroraKitsuneRadio", "Handheld: tune to the matching physical frequency; stations 9+ require a vehicle.");
 				Close();
 				return true;
