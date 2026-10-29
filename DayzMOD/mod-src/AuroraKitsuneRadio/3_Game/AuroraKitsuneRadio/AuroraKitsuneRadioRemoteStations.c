@@ -104,7 +104,7 @@ class AuroraKitsuneRadioRemoteStations
 
 	static void Fetch(bool force = false)
 	{
-		if (s_Pending || s_ServerAuthoritative) return;
+		if (s_Pending) return;
 		int now = GetGame().GetTime();
 		if (!force && now - s_LastRequestAt < 60000) return;
 		s_LastRequestAt = now;
@@ -131,7 +131,6 @@ class AuroraKitsuneRadioRemoteStations
 	{
 		s_Pending = false;
 		s_Callback = null;
-		if (s_ServerAuthoritative) return;
 		if (data.Length() < 40 || data.Length() > 10000000)
 		{
 			OnFailure("invalid response size");
