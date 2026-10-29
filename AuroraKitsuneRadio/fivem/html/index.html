@@ -1,0 +1,20 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box}body{font:16px system-ui;background:transparent;color:white}#panel{position:absolute;right:4%;top:13%;width:440px;height:70vh;background:#171b2cf5;border:1px solid #566081;border-radius:14px;padding:18px;display:none}
+input,button{border:1px solid #535b77;background:#283049;color:white;border-radius:7px;padding:9px}input{width:100%;margin:12px 0}
+#list{overflow:auto;height:calc(100% - 230px)}.item{width:100%;margin:3px 0;display:flex;justify-content:space-between;text-align:left;cursor:pointer}
+small{color:#bcc3d7}audio{width:100%;margin:10px 0}h3{margin:3px 0}
+</style></head><body><div id="panel"><h3>Aurora Kitsune Radio <button id="close" style="float:right">X</button></h3>
+<input id="search" placeholder="Search all stations..."><small id="status"></small><div id="list"></div>
+<button id="prev">Previous</button> <span id="page"></span> <button id="next">Next</button> <button id="stop">Stop</button>
+<audio id="player" controls preload="none"></audio><small id="current">No station playing</small></div>
+<script>
+let stations=[],found=[],page=0;const limit=25;
+const $=id=>document.getElementById(id);
+const post=(event,payload={})=>fetch('https://'+GetParentResourceName()+'/'+event,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+function refresh(){const q=$('search').value.toLocaleLowerCase();found=stations.filter(s=>(s.name+' '+s.country+' '+s.genre).toLocaleLowerCase().includes(q));page=0;render()}
+function render(){page=Math.max(0,Math.min(page,Math.max(0,Math.ceil(found.length/limit)-1)));$('list').replaceChildren();found.slice(page*limit,(page+1)*limit).forEach(s=>{let b=document.createElement('button');b.className='item';b.textContent=s.name+' ('+s.country+')';b.onclick=()=>post('select',{id:s.id});$('list').append(b)});$('page').textContent=(page+1)+' / '+Math.max(1,Math.ceil(found.length/limit));$('status').textContent=found.length+' results / '+stations.length+' stations'}
+$('search').oninput=refresh;$('prev').onclick=()=>{page--;render()};$('next').onclick=()=>{page++;render()};
+$('close').onclick=()=>post('close');$('stop').onclick=()=>post('stop');
+window.addEventListener('message',e=>{let d=e.data||{};if(d.action==='open')$('panel').style.display='block';if(d.action==='close')$('panel').style.display='none';if(d.action==='stations'){stations=d.stations||[];refresh()}if(d.action==='stop'){let a=$('player');a.pause();a.removeAttribute('src');a.load();$('current').textContent='Stopped'}if(d.action==='play'&&d.station){let a=$('player');a.pause();a.src=d.station.url;a.play().catch(()=>{$('current').textContent='Playback blocked or unsupported stream'});$('current').textContent=d.station.name}});
+document.onkeydown=e=>{if(e.key==='Escape')post('close')};
+</script></body></html>
