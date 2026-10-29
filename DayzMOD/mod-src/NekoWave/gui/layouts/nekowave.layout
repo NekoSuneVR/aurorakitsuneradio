@@ -1,0 +1,22 @@
+PanelWidgetClass NekoWavePanel {
+ visible 1
+ color 0.04 0.06 0.09 0.95
+ position 0.28 0.15
+ size 0.44 0.70
+ {
+  TextWidgetClass NWTitle { position 0.05 0.03 size 0.9 0.07 text "NekoWave Radio" font "gui/fonts/metron16bold" }
+  TextWidgetClass NWStatus { position 0.05 0.11 size 0.9 0.07 text "Station selection" font "gui/fonts/metron14" }
+  ButtonWidgetClass NW1 { position 0.05 0.20 size 0.9 0.065 style Editor text "1" }
+  ButtonWidgetClass NW2 { position 0.05 0.28 size 0.9 0.065 style Editor text "2" }
+  ButtonWidgetClass NW3 { position 0.05 0.36 size 0.9 0.065 style Editor text "3" }
+  ButtonWidgetClass NW4 { position 0.05 0.44 size 0.9 0.065 style Editor text "4" }
+  ButtonWidgetClass NW5 { position 0.05 0.52 size 0.9 0.065 style Editor text "5" }
+  ButtonWidgetClass NW6 { position 0.05 0.60 size 0.9 0.065 style Editor text "6" }
+  ButtonWidgetClass NW7 { position 0.05 0.68 size 0.9 0.065 style Editor text "7" }
+  ButtonWidgetClass NW8 { position 0.05 0.76 size 0.9 0.065 style Editor text "8" }
+  ButtonWidgetClass NWPrev { position 0.05 0.86 size 0.20 0.09 style Editor text "Previous" }
+  ButtonWidgetClass NWNext { position 0.27 0.86 size 0.20 0.09 style Editor text "Next" }
+  ButtonWidgetClass NWOff { position 0.50 0.86 size 0.20 0.09 style Editor text "Off" }
+  ButtonWidgetClass NWClose { position 0.72 0.86 size 0.23 0.09 style Editor text "Close" }
+ }
+}
